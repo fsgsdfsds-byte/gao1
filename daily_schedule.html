@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分天课表 - 有道领世课表1.0pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#E53E3E', // 主红色
+            secondary: '#ED8936', // 橙色
+            warning: '#F59E0B', // 黄色
+            dark: '#2D3748',
+          },
+          fontFamily: {
+            sans: ['Microsoft YaHei', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .card-shadow {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .transition-all-300 {
+        transition: all 300ms ease-in-out;
+      }
+      /* 移除了教师卡片的悬停效果 */
+      .teacher-card {
+        /* 保留基本样式，移除过渡和悬停效果 */
+      }
+      .schedule-card {
+        background: linear-gradient(135deg, #fff 0%, #f9f9f9 100%);
+        border-radius: 12px;
+      }
+      .btn-primary {
+        background-color: #E53E3E;
+        color: white;
+        /* 移除过渡和悬停效果 */
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- 页面主体 -->
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <header class="text-center mb-12">
+      <!-- 头部标题 -->
+    </header>
+
+    <!-- 下载按钮区域已移除 -->
+
+    <!-- 主要内容区 -->
+    <div class="space-y-12">
+      <!-- 周五课表 -->
+      <div id="fridaySchedule" class="bg-primary rounded-2xl p-8 text-white relative overflow-hidden">
+        <!-- 上方中间logo -->
+        <img src="logo.png" alt="有道领世" class="absolute top-0 left-1/2 transform -translate-x-1/2 max-w-64 h-auto" style="z-index: 20;"/>
+        <!-- 右下角二维码 -->
+        <img src="m1.png" alt="二维码" class="absolute bottom-6 right-6 w-24 h-24 object-contain" style="z-index: 20;"/>
+        <!-- 背景装饰 -->
+        <div class="absolute -right-24 -top-24 w-64 h-64 bg-white/10 rounded-full"></div>
+        <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-white/10 rounded-full"></div>
+        
+        <!-- 课表头部 -->
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div>
+            <h2 class="text-[clamp(2.5rem,5vw,4rem)] font-bold text-white">周五英才班体验课</h2>
+          </div>
+          <div>
+            <button id="downloadFridayBtn" class="bg-white text-primary font-bold py-3 px-6 rounded-full flex items-center shadow-lg hover:bg-gray-100">
+              <i class="fa fa-download mr-2"></i> 下载周五课表
+            </button>
+          </div>
+        </div>
+        
+        <!-- 教师课程卡片区域 -->
+        <div id="fridayTeachers" class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- 教师课程卡片将动态生成 -->
+        </div>
+        
+        <!-- 底部信息 -->
+        <div class="relative z-10 mt-10 text-center">
+          <p class="text-lg mb-2">听完今晚课程，拿下高考高频核心考点！</p>
+          <p class="text-white/80">扫码下载【有道领世】App，登录报名手机号即可看课</p>
+        </div>
+      </div>
+
+      <!-- 周六课表 -->
+      <div id="saturdaySchedule" class="bg-gradient-to-r from-secondary to-primary rounded-2xl p-8 text-white relative overflow-hidden">
+        <!-- 上方中间logo -->
+        <img src="logo.png" alt="有道领世" class="absolute top-0 left-1/2 transform -translate-x-1/2 max-w-64 h-auto" style="z-index: 20;"/>
+        <!-- 右下角二维码 -->
+        <img src="m1.png" alt="二维码" class="absolute bottom-6 right-6 w-24 h-24 object-contain" style="z-index: 20;"/>
+        <!-- 背景装饰 -->
+        <div class="absolute -right-24 -top-24 w-64 h-64 bg-white/10 rounded-full"></div>
+        <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-white/10 rounded-full"></div>
+        
+        <!-- 课表头部 -->
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div>
+            <h2 class="text-[clamp(2.5rem,5vw,4rem)] font-bold text-white">周六英才班体验课</h2>
+          </div>
+          <div>
+            <button id="downloadSaturdayBtn" class="bg-white text-primary font-bold py-3 px-6 rounded-full flex items-center shadow-lg hover:bg-gray-100">
+              <i class="fa fa-download mr-2"></i> 下载周六课表
+            </button>
+          </div>
+        </div>
+        
+        <!-- 教师课程卡片区域 -->
+        <div id="saturdayTeachers" class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- 教师课程卡片将动态生成 -->
+        </div>
+        
+        <!-- 底部信息 -->
+        <div class="relative z-10 mt-10 text-center">
+          <p class="text-lg mb-2">掌握解题技巧，突破学习瓶颈！</p>
+          <p class="text-white/80">扫码下载【有道领世】App，登录报名手机号即可看课</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 底部信息 -->
+    <div class="text-center mt-12 text-gray-600">
+      <p>© 2025 英才班体验课 | 高中最强课表生成工具</p>
+    </div>
+  </div>
+
+
+
+  <script>
+    // 全局变量
+    var data = null;
+    
+    // 从localStorage获取数据
+    function loadData() {
+      try {
+        var coursesData = localStorage.getItem('dailyCourses');
+        var channelData = localStorage.getItem('currentChannel');
+        var teacherInfoData = localStorage.getItem('teacherInfo');
+        
+        if (!coursesData || !teacherInfoData) {
+          alert('无法加载课程数据，请先在主页面生成课表');
+          return null;
+        }
+        
+        return {
+          courses: JSON.parse(coursesData),
+          channel: channelData,
+          teacherInfo: JSON.parse(teacherInfoData)
+        };
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        alert('加载数据失败，请重试');
+        return null;
+      }
+    }
+    
+    // 从课程内容中提取科目
+    function extractCourseSubject(content) {
+      var match = content.match(/【(.*?)】/);
+      if (match && match[1]) {
+        return match[1];
+      }
+      var subjects = ['语文', '数学', '英语', '物理', '化学', '生物', '历史', '地理', '政治'];
+      for (var i = 0; i < subjects.length; i++) {
+        if (content.indexOf(subjects[i]) !== -1) {
+          return subjects[i];
+        }
+      }
+      return '课程';
+    }
+    
+    // 生成单天课表
+    function generateDaySchedule(day, container, teacherInfo) {
+      // 筛选当天课程
+      var dayCourses = [];
+      for (var i = 0; i < data.courses.length; i++) {
+        if (data.courses[i].day === day) {
+          dayCourses.push(data.courses[i]);
+        }
+      }
+      
+      // 清空容器
+      container.innerHTML = '';
+      
+      // 按照时间排序课程
+      dayCourses.sort(function(a, b) {
+        return a.time.localeCompare(b.time);
+      });
+      
+      // 生成教师课程卡片
+      for (var i = 0; i < dayCourses.length; i++) {
+        var course = dayCourses[i];
+        var teacherData = teacherInfo[course.teacher] || {};
+        
+        // 创建教师课程卡片
+        var card = document.createElement('div');
+        card.className = 'teacher-card bg-white rounded-lg overflow-hidden shadow-lg w-full';
+        
+        // 处理教师信息
+        var fullTeacherDesc = teacherData.desc ? teacherData.desc.split('\n').join('<br>') : '';
+        var imgSrc = teacherData.img || 'https://via.placeholder.com/100';
+        var teacherTitle = teacherData.title || course.teacher;
+        var subject = extractCourseSubject(course.content);
+        var courseContent = course.content.replace(/【.*?】/, '');
+        
+        // 卡片内容
+        card.innerHTML = '<div class="p-4">' +
+          '<div class="flex items-center mb-4">' +
+          '<div class="w-32 h-32">' +
+          '<img src="' + imgSrc + '" alt="' + course.teacher + '" class="w-full h-full object-contain">' +
+          '</div>' +
+          '<div class="ml-4 flex-1">' +
+          '<div>' +
+          '<div class="font-bold text-primary text-2xl">' + teacherTitle + '</div>' +
+          '<div class="text-sm text-gray-600 mt-1 italic" style="white-space: pre-line;">' + fullTeacherDesc + '</div>' +
+          '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="bg-white p-4 rounded-lg border border-white w-full">' +
+          '<div class="flex items-center text-lg font-bold text-primary mb-3">' +
+          '<i class="fa fa-clock-o mr-2"></i>' +
+          '<span>上课时间 | ' + course.time + '</span>' +
+          '</div>' +
+          '<div class="font-bold text-primary text-xl mb-2">【' + subject + '】</div>' +
+          '<div class="text-xl font-bold text-gray-900 mb-3 flex-1 overflow-visible whitespace-nowrap">' + courseContent + '</div>' +
+          '<div class="flex items-center text-gray-600">' +
+          '<i class="fa fa-line-chart mr-1"></i>' +
+          '<span>高考分值 | ' + course.score + '</span>' +
+          '</div>' +
+          '</div>' +
+          '</div>';
+        
+        container.appendChild(card);
+      }
+      
+      // 如果没有课程，显示提示信息
+      if (dayCourses.length === 0) {
+        var emptyCard = document.createElement('div');
+        emptyCard.className = 'col-span-full bg-white/20 rounded-lg p-8 text-center';
+        emptyCard.innerHTML = '<i class="fa fa-calendar-check-o text-4xl mb-4"></i>' +
+          '<p class="text-xl">暂无' + (day === '周五' ? '周五' : '周六') + '的课程安排</p>';
+        container.appendChild(emptyCard);
+      }
+    }
+    
+    // 初始化下载按钮
+    function initDownloadButtons() {
+      var fridayBtn = document.getElementById('downloadFridayBtn');
+      var saturdayBtn = document.getElementById('downloadSaturdayBtn');
+      
+      if (fridayBtn) {
+        fridayBtn.onclick = function() {
+          downloadDayScheduleImage('周五');
+        };
+      }
+      
+      if (saturdayBtn) {
+        saturdayBtn.onclick = function() {
+          downloadDayScheduleImage('周六');
+        };
+      }
+    }
+    
+    // 显示通知提示函数
+    function showNotification(message, type) {
+      // 创建通知元素
+      const notification = document.createElement('div');
+      
+      // 设置基础样式
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 999999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+        opacity: 0;
+      `;
+      
+      // 根据类型设置不同颜色
+      if (type === 'success') {
+        notification.style.backgroundColor = '#10B981';
+      } else if (type === 'error') {
+        notification.style.backgroundColor = '#EF4444';
+      } else if (type === 'info') {
+        notification.style.backgroundColor = '#3B82F6';
+      } else {
+        notification.style.backgroundColor = '#6B7280';
+      }
+      
+      // 设置消息内容
+      notification.textContent = message;
+      
+      // 添加到页面
+      document.body.appendChild(notification);
+      
+      // 显示动画
+      setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+        notification.style.opacity = '1';
+      }, 10);
+      
+      // 3秒后自动隐藏
+      setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // 下载单天课表图片
+    function downloadDayScheduleImage(day) {
+      var scheduleDiv = document.getElementById(day === '周五' ? 'fridaySchedule' : 'saturdaySchedule');
+      if (!scheduleDiv) {
+        alert('无法找到课表元素');
+        return;
+      }
+      
+      // 显示准备下载提示
+      showNotification('请稍候，正在准备下载...', 'info');
+      
+      // 获取对应的下载按钮
+      var downloadBtn = document.getElementById(day === '周五' ? 'downloadFridayBtn' : 'downloadSaturdayBtn');
+      var btnStyle = null;
+      
+      // 临时隐藏原下载按钮
+      if (downloadBtn) {
+        btnStyle = downloadBtn.style.display;
+        downloadBtn.style.display = 'none';
+      }
+      
+      // 创建克隆容器
+      var clone = scheduleDiv.cloneNode(true);
+      clone.id = day + 'Clone';
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.top = '-9999px';
+      clone.style.width = scheduleDiv.offsetWidth + 'px';
+      clone.style.height = scheduleDiv.offsetHeight + 'px';
+      clone.style.pointerEvents = 'none';
+      document.body.appendChild(clone);
+      
+      // 确保克隆元素可见
+      clone.style.visibility = 'visible';
+      clone.style.opacity = '1';
+      
+      // 彻底移除克隆中所有按钮和下载相关元素
+      var allButtons = clone.querySelectorAll('button');
+      allButtons.forEach(function(btn) {
+        btn.remove();
+      });
+      
+      var downloadElements = clone.querySelectorAll('[id*="download"],[class*="download"],[id*="btn"],[class*="btn"]');
+      downloadElements.forEach(function(element) {
+        element.remove();
+      });
+      
+      // 优化配置，大幅提高图片清晰度
+      var html2canvasOptions = {
+        backgroundColor: '#ffffff',
+        scale: 3, // 高缩放比例确保高质量图片
+        useCORS: true,
+        imageTimeout: 30000,
+        width: clone.offsetWidth,
+        height: clone.offsetHeight,
+        removeContainer: false,
+        delay: 500, // 增加延迟确保所有元素渲染完成
+        allowTaint: true,
+        logging: false,
+        windowWidth: scheduleDiv.scrollWidth,
+        windowHeight: scheduleDiv.scrollHeight,
+        letterRendering: true, // 提高文字渲染质量
+        useTransform: true
+      };
+      
+      // 等待图片加载完成
+      var images = clone.querySelectorAll('img');
+      var promises = Array.from(images).map(function(img) {
+        return new Promise(function(resolve) {
+          if (img.complete) {
+            resolve();
+          } else {
+            img.onload = resolve;
+            img.onerror = resolve;
+          }
+        });
+      });
+      
+      Promise.all(promises).then(function() {
+        setTimeout(function() {
+          html2canvas(clone, html2canvasOptions).then(function(canvas) {
+            // 使用高质量参数生成图片
+            var link = document.createElement('a');
+            var timestamp = new Date().toLocaleString('zh-CN').replace(/[\\/:*?"<>|]/g, '-');
+            link.download = day + '课表_' + timestamp + '.png';
+            link.href = canvas.toDataURL('image/png', 0.95); // 高质量设置
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 显示下载成功提示
+            showNotification(day + '课表下载成功！', 'success');
+            
+            // 恢复原下载按钮显示
+            setTimeout(function() {
+              if (downloadBtn && btnStyle !== null) {
+                downloadBtn.style.display = btnStyle;
+              }
+            }, 100);
+            
+            // 移除克隆容器
+            document.body.removeChild(clone);
+          }).catch(function(error) {
+            console.error('截图失败:', error);
+            showNotification('截图失败，请重试', 'error');
+            
+            // 恢复原下载按钮显示
+            if (downloadBtn && btnStyle !== null) {
+              downloadBtn.style.display = btnStyle;
+            }
+            
+            // 确保移除克隆容器
+            if (document.body.contains(clone)) {
+              document.body.removeChild(clone);
+            }
+          });
+        }, 500); // 增加额外延迟确保渲染完成
+      });
+    }
+      
+      // 下载单天内容（已禁用）
+    function downloadDayContent(day) {
+      var fileName = day + '课表.html';
+      var scheduleDiv = document.getElementById(day === '周五' ? 'fridaySchedule' : 'saturdaySchedule');
+      
+      if (scheduleDiv) {
+        var content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + fileName + '</title><style>.teacher-card{background:white;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);}</style></head><body>' + scheduleDiv.outerHTML + '</body></html>';
+        createDownloadLink(content, fileName);
+      }
+    }
+    
+    // 下载全部内容
+    function downloadAllContent() {
+      var fileName = '全部课表.html';
+      var fridayDiv = document.getElementById('fridaySchedule');
+      var saturdayDiv = document.getElementById('saturdaySchedule');
+      
+      var content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + fileName + '</title><style>.teacher-card{background:white;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);}</style></head><body>';
+      if (fridayDiv) content += fridayDiv.outerHTML + '<br><br>';
+      if (saturdayDiv) content += saturdayDiv.outerHTML;
+      content += '</body></html>';
+      
+      createDownloadLink(content, fileName);
+    }
+    
+    // 创建下载链接
+    function createDownloadLink(content, fileName) {
+      var a = document.createElement('a');
+      a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    
+    // 页面加载完成后初始化
+    window.onload = function() {
+      // 获取DOM元素
+      var fridayTeachers = document.getElementById('fridayTeachers');
+      var saturdayTeachers = document.getElementById('saturdayTeachers');
+      
+      // 加载数据并生成课表
+      data = loadData();
+      if (data && fridayTeachers && saturdayTeachers) {
+        generateDaySchedule('周五', fridayTeachers, data.teacherInfo);
+        generateDaySchedule('周六', saturdayTeachers, data.teacherInfo);
+      }
+      
+      // 初始化下载按钮
+      initDownloadButtons();
+    };
+  </script>
+</body>
+</html>

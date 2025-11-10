@@ -1,0 +1,23 @@
+[build]
+  publish = "."
+  command = "#"
+
+[headers]
+  # 允许跨域请求图片资源
+  [[headers.values]]
+    for = "/*"
+    [headers.values.Access-Control-Allow-Origin]
+      value = "*"
+    [headers.values.Access-Control-Allow-Methods]
+      value = "GET, POST, OPTIONS"
+    [headers.values.Access-Control-Allow-Headers]
+      value = "*"
+
+[functions]
+  # 确保JavaScript函数可以访问DOM和canvas API
+  included_files = ["./**/*"]
+
+[[redirects]]
+  from = "/*"
+  to = "/高三.html"
+  status = 200
