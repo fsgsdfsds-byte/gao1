@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>有道领世课表2.0pro</title>
+  <title>有道领世课表3.0pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -52,7 +52,7 @@
   <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- 页面标题 -->
     <header class="text-center mb-8">
-      <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-2">有道领世课表2.0pro</h1>
+      <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-2">有道领世课表3.0pro</h1>
       <p class="text-gray-600">上方编辑，下方预览，一键三连</p>
     </header>
 
@@ -760,6 +760,81 @@
       // 生成课程表格内容
       const courseItems = coursesContainer.querySelectorAll('[data-id]');
       
+      // 定义可选择的绑定课程 - 现在这些课程会显示在编辑区供选择
+      const availableBoundCourses = [
+        { id: 1, teacher: '陈旭晨', content: '【生物规划】小学加减法速解蛋白质计算', score: '6～12分' },
+        { teacher: '李荟乐', content: '【地理规划】那些在高一被忽视的高考大考点', score: '6～10分' },
+        { teacher: '李珊玥', content: '【历史规划】高中历史提升指南', score: '6～11分' },
+        { teacher: '张博文', content: '【政治规划】一条线拿下高一政治大题', score: '10～16分' }
+      ];
+      
+      // 用于存储用户选择的绑定课程
+      // 默认选择前两个
+      if (!window.selectedBoundCourses) {
+        window.selectedBoundCourses = availableBoundCourses.slice(0, 2);
+      }
+      
+      // 用于跟踪已经处理过的钟啸老师课程
+      const processedZhongXiaoCourses = new Set();
+      
+      // 显示绑定课程选择区域
+      showBoundCourseSelection();
+      
+      // 显示绑定课程选择区域的函数
+      function showBoundCourseSelection() {
+        let selectionContainer = document.getElementById('boundCourseSelection');
+        
+        // 如果容器不存在，创建它
+        if (!selectionContainer) {
+          selectionContainer = document.createElement('div');
+          selectionContainer.id = 'boundCourseSelection';
+          selectionContainer.className = 'mt-4 p-4 bg-gray-100 rounded-lg';
+          selectionContainer.innerHTML = `
+            <h4 class="font-bold mb-2">选择与钟啸老师绑定的两节课（请选择两项）：</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="boundCourseOptions"></div>
+          `;
+          
+          // 将容器插入到coursesContainer之前
+          coursesContainer.parentNode.insertBefore(selectionContainer, coursesContainer);
+        }
+        
+        // 更新选项
+        const optionsContainer = document.getElementById('boundCourseOptions');
+        optionsContainer.innerHTML = '';
+        
+        availableBoundCourses.forEach((course, index) => {
+          const isSelected = window.selectedBoundCourses.some(c => c.teacher === course.teacher);
+          const optionDiv = document.createElement('div');
+          optionDiv.className = 'flex items-center p-2 border rounded';
+          optionDiv.innerHTML = `
+            <input type="checkbox" id="boundCourse_${index}" class="mr-2" ${isSelected ? 'checked' : ''}>
+            <label for="boundCourse_${index}">
+              <span class="font-medium">${course.teacher}</span>: 
+              <span>${course.content} (${course.score})</span>
+            </label>
+          `;
+          
+          const checkbox = optionDiv.querySelector('input[type="checkbox"]');
+          checkbox.addEventListener('change', function() {
+            if (this.checked) {
+              // 如果已经选择了两个，不允许再选
+              if (window.selectedBoundCourses.length >= 2) {
+                this.checked = false;
+                alert('最多只能选择两节课与钟啸老师绑定');
+                return;
+              }
+              window.selectedBoundCourses.push(course);
+            } else {
+              // 取消选择
+              window.selectedBoundCourses = window.selectedBoundCourses.filter(c => c.teacher !== course.teacher);
+            }
+            updatePreview(); // 更新预览
+          });
+          
+          optionsContainer.appendChild(optionDiv);
+        });
+      }
+      
       courseItems.forEach((item, index) => {
         // 获取时间部分
         const timeDiv = item.querySelector('div:first-child');
@@ -800,25 +875,33 @@
           <span>${day}</span>
           <span>${time}</span>
         </div>`;
-        timeCell.className = "px-[0.3rem] py-3 border-2 border-blue-100 text-base font-medium text-gray-800";
+        timeCell.className = "px-[0.3rem] py-2 border-2 border-blue-100 text-sm font-medium text-gray-800";
+        
+        // 对于钟啸老师的课程，设置单元格跨3行（1节钟啸课+2节绑定课）
+        if (teacher === '钟啸' && !processedZhongXiaoCourses.has(`${day}-${time}`)) {
+          timeCell.rowSpan = 3;
+          // 垂直居中显示
+          timeCell.style.verticalAlign = 'middle';
+        }
+        
         row.appendChild(timeCell);
         
         // 创建主讲单元格
         const teacherCell = document.createElement('td');
         teacherCell.textContent = teacher;
-        teacherCell.className = "px-[0.3rem] py-3 border-2 border-blue-100 text-base font-medium text-center text-gray-800";
+        teacherCell.className = "px-[0.3rem] py-2 border-2 border-blue-100 text-sm font-medium text-center text-gray-800";
         row.appendChild(teacherCell);
         
         // 创建课程内容单元格
         const contentCell = document.createElement('td');
         contentCell.textContent = content;
-        contentCell.className = "px-[0.3rem] py-3 border-2 border-blue-100 text-base text-left text-gray-800";
+        contentCell.className = "px-[0.3rem] py-2 border-2 border-blue-100 text-sm text-left text-gray-800";
         row.appendChild(contentCell);
         
         // 创建分值占比单元格
         const scoreCell = document.createElement('td');
         scoreCell.textContent = score;
-        scoreCell.className = "px-[0.3rem] py-3 border-2 border-blue-100 text-base font-medium text-center text-indigo-600";
+        scoreCell.className = "px-[0.3rem] py-2 border-2 border-blue-100 text-sm font-medium text-center text-indigo-600";
         row.appendChild(scoreCell);
         
         // 为胡源或白瑞芳的行添加粗体和红色字体样式
@@ -834,6 +917,48 @@
         
         // 添加行到表格
         previewTableBody.appendChild(row);
+        
+        // 当出现钟啸老师的课程时，添加用户选择的两节课
+        if (teacher === '钟啸' && !processedZhongXiaoCourses.has(`${day}-${time}`)) {
+          processedZhongXiaoCourses.add(`${day}-${time}`);
+          
+          // 使用用户选择的绑定课程
+          const selectedCourses = window.selectedBoundCourses;
+          
+          // 添加选中的两节课
+          selectedCourses.forEach((boundCourse, boundIndex) => {
+            // 创建绑定课程行
+            const boundRow = document.createElement('tr');
+            boundRow.className = (index + boundIndex + 1) % 2 === 0 ? 'bg-white' : 'bg-blue-50/50';
+            
+            // 绑定课程不显示时间单元格，因为钟啸老师的时间单元格已经跨3行了
+            // 直接创建空白单元格并设置为透明边框，避免影响表格布局
+            const boundTimeCell = document.createElement('td');
+            boundTimeCell.style.display = 'none'; // 隐藏时间单元格
+            boundRow.appendChild(boundTimeCell);
+            
+            // 创建主讲单元格
+            const boundTeacherCell = document.createElement('td');
+            boundTeacherCell.textContent = boundCourse.teacher;
+            boundTeacherCell.className = "px-[0.3rem] py-2 border-2 border-blue-100 text-sm font-medium text-center text-gray-800";
+            boundRow.appendChild(boundTeacherCell);
+            
+            // 创建课程内容单元格
+            const boundContentCell = document.createElement('td');
+            boundContentCell.textContent = boundCourse.content;
+            boundContentCell.className = "px-[0.3rem] py-2 border-2 border-blue-100 text-sm text-left text-gray-800";
+            boundRow.appendChild(boundContentCell);
+            
+            // 创建分值占比单元格
+            const boundScoreCell = document.createElement('td');
+            boundScoreCell.textContent = boundCourse.score;
+            boundScoreCell.className = "px-[0.3rem] py-2 border-2 border-blue-100 text-sm font-medium text-center text-indigo-600";
+            boundRow.appendChild(boundScoreCell);
+            
+            // 添加行到表格
+            previewTableBody.appendChild(boundRow);
+          });
+        }
       });
       
       // 添加赠课表格
